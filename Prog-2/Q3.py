@@ -71,10 +71,3 @@ pre_symbols = {' ', '|', '-', '`'}
 root = construct_tree(filepath)
 graph = construct_dot(root)
 write_to_file(graph)
-
-def dfs(root: TreeNode, level):
-    print(" " * level + root.label, root.key)
-    for child in root.children:
-        dfs(child, level + 1)
-
-dfs(root, 0)
