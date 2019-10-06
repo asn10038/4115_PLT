@@ -1,5 +1,5 @@
 operators = {"&": "\\&", "++": "++", "+": "+", "-": "-", "*": "*", "<": "\\<", ">": "\\>", "=": "\\="}
-
+pre_symbols = {' ', '|', '-', '`'}
 
 def _split(s):
     res = []
@@ -29,6 +29,7 @@ def to_node(line):
     details = _split(line[start:])
     # details = line[start:].split(' ')
     if len(details) >= 2:
+        value = ""
         if "Operator" in details[0]:
             for ops, ops_to_print in operators.items():
                 if ops in line:
@@ -105,7 +106,6 @@ def write_to_file(graph):
 
 
 filepath = "bubble_sort_ast.txt"
-pre_symbols = {' ', '|', '-', '`'}
 root = construct_tree(filepath)
 graph = construct_dot(root)
 write_to_file(graph)
