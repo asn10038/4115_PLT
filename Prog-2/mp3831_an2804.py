@@ -1,5 +1,12 @@
+"""
+    This script will take the file with the name of args[0] as input, and generate an AST
+"""
+
+import sys
+
 operators = {"&": "\\&", "++": "++", "+": "+", "-": "-", "*": "*", "<": "\\<", ">": "\\>", "=": "\\="}
 pre_symbols = {' ', '|', '-', '`'}
+
 
 def _split(s):
     res = []
@@ -105,7 +112,13 @@ def write_to_file(graph):
     out_file.close()
 
 
-filepath = "bubble_sort_ast.txt"
+if len(sys.argv) < 2 or not sys.argv[1]:
+    print("file is needed")
+    exit(-1)
+
+filepath = sys.argv[1]
 root = construct_tree(filepath)
 graph = construct_dot(root)
-write_to_file(graph)
+# write_to_file(graph)
+for line in graph:
+    print(line)
