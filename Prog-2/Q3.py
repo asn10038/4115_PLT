@@ -1,3 +1,23 @@
+operators = {"&": "\\&", "++": "++", "+": "+", "-": "-", "*": "*", "<": "\\<", ">": "\\>", "=": "\\="}
+
+
+def _split(s):
+    res = []
+    escape = False
+    cur = []
+    for ch in s:
+        if ch == '\'':
+            escape = not escape
+        elif ch == ' ' and not escape and len(cur) > 0:
+            res.append("".join(cur))
+            cur = []
+        else:
+            cur.append(ch)
+    if len(cur) > 0:
+        res.append("".join(cur))
+    return res
+
+
 def to_node(line):
     if len(line) == 0:
         return None, None
@@ -6,19 +26,33 @@ def to_node(line):
         if line[start] not in pre_symbols:
             break
     level = start // 2
-    details = line[start:].split(' ')
+    details = _split(line[start:])
+    # details = line[start:].split(' ')
     if len(details) >= 2:
-        return TreeNode("Node" + details[1], details[0]), level
+        if "Operator" in details[0]:
+            for ops, ops_to_print in operators.items():
+                if ops in line:
+                    value = details[0] + ", " + ops_to_print
+                    break
+        elif details[0] == "DeclRefExpr":
+            value = details[0] + ", " + details[-2]
+        elif details[0] == "IntegerLiteral":
+            value = details[0] + ", " + details[-1]
+        else:
+            value = details[0]
+        return TreeNode("Node" + details[1], value), level
     # elif len(details) == 1:
     #     if details[0] == "<<<NULL>>>":
     #         return TreeNode("Node0x0", "\\<NULL\\>"), level
     return None, None
 
+
 class TreeNode:
-    def __init__(self, key, label):
+    def __init__(self, key, value):
         self.key = key
-        self.label = label
+        self.value = value
         self.children = []
+
 
 def construct_tree(filepath: str):
     root = TreeNode("", "")
@@ -46,17 +80,20 @@ def construct_tree(filepath: str):
 def construct_dot(root: TreeNode):
     graph = []
     graph.append("digraph ast {")
+
     def traverse(node: TreeNode):
         if not node:
             return
-        graph.append(f"\t{node.key} [shape=record, label = \"{{{node.label}}}\"];")
+        graph.append(f"\t{node.key} [shape=record, label = \"{{{node.value}}}\"];")
         for child in node.children:
             graph.append(f"\t{node.key} -> {child.key};")
         for child in node.children:
             traverse(child)
+
     traverse(root)
     graph.append("}")
     return graph
+
 
 def write_to_file(graph):
     out_file = open("my_ast.txt", "w")
@@ -65,6 +102,7 @@ def write_to_file(graph):
         out_file.write(line)
         out_file.write("\n")
     out_file.close()
+
 
 filepath = "bubble_sort_ast.txt"
 pre_symbols = {' ', '|', '-', '`'}
