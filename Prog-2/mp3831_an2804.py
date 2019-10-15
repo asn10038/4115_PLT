@@ -49,9 +49,9 @@ def to_node(line):
         else:
             value = details[0]
         return TreeNode("Node" + details[1], value), level
-    # elif len(details) == 1:
-    #     if details[0] == "<<<NULL>>>":
-    #         return TreeNode("Node0x0", "\\<NULL\\>"), level
+    elif len(details) == 1:
+        if details[0] == "<<<NULL>>>":
+            return TreeNode("Node0x0", "\\<NULL\\>"), level
     return None, None
 
 
@@ -66,11 +66,17 @@ def construct_tree(filepath: str):
     root = TreeNode("", "")
     stack = [root]
     prev = root
+    null_node_flag = False
     with open(filepath) as fp:
         for line in fp:
             node, level = to_node(line.strip())
             if not node:
                 continue
+            if node.key == "Node0x0":
+                if null_node_flag:
+                    continue
+                else:
+                    null_node_flag = True
             if level == len(stack):
                 pass
             elif level == len(stack) + 1:
@@ -94,6 +100,8 @@ def construct_dot(root: TreeNode):
             return
         graph.append(f"\t{node.key} [shape=record, label = \"{{{node.value}}}\"];")
         for child in node.children:
+            if child.key == "Node0x0":
+                continue
             graph.append(f"\t{node.key} -> {child.key};")
         for child in node.children:
             traverse(child)
