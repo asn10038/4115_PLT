@@ -75,12 +75,6 @@ namespace {
       for (BasicBlock &BB : F) {
         bbs++;
         insts += BB.size();
-        // track call sites
-        //for(auto &I: BB) {
-         //   if(auto *CallInst = dyn_cast<CallInst>(&I)) {
-          //      infoMap[CallInst->getCalledFunction().getName()]++;
-           // }
-        //}
       }
 
       for (auto it = F.arg_begin(); it != F.arg_end(); it++) {
@@ -103,7 +97,6 @@ namespace {
     }
 
     bool doFinalization(Module &M) {
-        errs() << "Calling finalization\n";
         for (auto &x : infoMap) {
             x.second.fillCallSiteCount(callSiteMap);
             x.second.dump();
