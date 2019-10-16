@@ -1,0 +1,17 @@
+Q1:
+Mingen (mp3831) did the part one, and Anthony (an2804) reviewed it.
+
+Q2:
+Anthony developed the part 2, using Function Pass and Instruction Visitor. He looped over basic blocks and acquired the number of basic blocks and instructions. He used Instruction Visitor to acquire number of call sites.
+
+Mingen was inspired by Anthony's code, and also completed part 2 independently using Module Pass and Instruction iterator. He used the member function of Function class to acquire number of arguments, basic blocks, and instructions. He used Instruction iterator to count the number of call sites.
+
+We compared our results and found they were consistent.
+
+Finally, we merged our code. The final version used the member functions of Function class to acquire number of arguments, basic blocks, and instructions, and used Instruction Visitor to compute the number of call sites.
+
+The reason we used Instruction Visitor is that it has better performance thanks to the LLVM's indexing.
+
+In the an2804_mp3831.cpp, there are two Passes. The first one (HW3) is the final version we decide to submit. The second one (HW3ModulePass) is the version written by Mingen, which uses Instruction Iterator.
+
+They are registered using different pass names, so they won't collide. To review our final version, just use `-hw3`.

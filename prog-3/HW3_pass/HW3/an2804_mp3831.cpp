@@ -16,6 +16,9 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/InstVisitor.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/InstIterator.h"
 using namespace llvm;
 
 #define DEBUG_TYPE "hw3"
@@ -72,8 +75,6 @@ namespace {
     HW3() : FunctionPass(ID) {}
 
     bool runOnFunction(Function &F) override {
-      errs() << "Function Name: " <<  F.getName() << "\n";
-
       //Visit and check call sites
       CallSiteVisitor CSV;
       CSV.visit(F);
@@ -103,17 +104,65 @@ namespace {
 char HW3::ID = 0;
 static RegisterPass<HW3> X("hw3", "hw3 pass");
 
-#if 0
+class ClassInfo {
+  public:
+    std::string name;
+    int NumOfArgs;
+    int NumOfCallSites;
+    int NumOfBasicBlocks;
+    int NumOfInstructions;
+    ClassInfo() {};
+};
+
+typedef std::map<std::string, ClassInfo> StringClassInfoMap;
+
 namespace {
   // Hello2 - The second implementation with getAnalysisUsage implemented.
-  struct Hello2 : public FunctionPass {
+  struct HW3ModulePass : public ModulePass {
     static char ID; // Pass identification, replacement for typeid
-    Hello2() : FunctionPass(ID) {}
+    HW3ModulePass() : ModulePass(ID) {}
 
-    bool runOnFunction(Function &F) override {
-      ++HelloCounter;
-      errs() << "Hello: ";
-      errs().write_escaped(F.getName()) << '\n';
+    bool runOnModule(Module &M) override {
+      StringClassInfoMap map;
+      // Get the basic info of a Function and store them in a map
+      for (auto Fp = M.getFunctionList().begin(), EndFp = M.getFunctionList().end(); Fp != EndFp; Fp++) {
+        ClassInfo info;
+        info.name = Fp->getName();
+        info.NumOfArgs = Fp->arg_size();
+        info.NumOfCallSites = 0;
+        info.NumOfBasicBlocks = Fp->getBasicBlockList().size();
+        info.NumOfInstructions = Fp->getInstructionCount();
+        map[Fp->getName()] = info;
+      }
+
+      //Interate the instructions of every function
+      for (auto Fp = M.getFunctionList().begin(), EndFp = M.getFunctionList().end(); Fp != EndFp; Fp++) {
+        for (inst_iterator inst = inst_begin(*Fp), endInst = inst_end(*Fp); inst != endInst; ++inst) {
+          Instruction &I = *inst;
+          if (auto *callInst = dyn_cast<CallInst>(&I)) {
+            // We know we've encountered a call instruction, so we
+            // need to determine if it's a call to the function in the target module
+            std::string funcName = callInst->getCalledFunction()->getName();
+            if (map.find(funcName) != map.end()) {
+              map[funcName].NumOfCallSites++;
+            }
+          }
+        }
+      }
+      
+      for (auto const& entry : map) {
+        const ClassInfo& info = entry.second;
+        if (info.NumOfInstructions == 0) {
+          continue;
+        }
+        errs() << "Name: " << info.name << '\n';
+        errs() << "Number of Argments: " << info.NumOfArgs << '\n';
+        errs() << "Number of direct call sites in the same LLVM module: " << info.NumOfCallSites << '\n';
+        errs() << "Number of Basic Blocks: " << info.NumOfBasicBlocks << '\n';
+        errs() << "Number of Insturctions: " << info.NumOfInstructions << '\n';
+        errs() << '\n';
+      } 
+
       return false;
     }
 
@@ -124,7 +173,6 @@ namespace {
   };
 }
 
-char Hello2::ID = 0;
-static RegisterPass<Hello2>
-Y("hello2", "Hello World Pass (with getAnalysisUsage implemented)");
-#endif
+char HW3ModulePass::ID = 0;
+static RegisterPass<HW3ModulePass>
+Y("hw3ModulePass", "HW3 with Module Pass");

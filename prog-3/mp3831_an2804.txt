@@ -1,0 +1,17 @@
+bubble.ll and bubble_with_optimization.ll vary in following aspects:
+
+1. Length
+bubble.ll has only 184 lines, while bubble_with_optimization.ll have 474 lines.
+
+2. Call sites:
+In bubble.ll, swap, printArray, and bubbleSort functions are called exactly designed by bubble.c.
+In bubble_with_optimization.ll, the above functions are defined, but none of them are called anywhere.
+
+3. Number of instructions of functions:
+Let's first look at swap, because it only contains basic operations and does not call other functions.
+bubble.ll has 16 instructions, while bubble_with_optimization.ll has only 5. 
+It shows the optimizer (opt) succeeded to refactor the code.
+
+Now let's look at bubbleSort, printArray, and main.
+These functions have much more instructions in bubble_with_optimization.ll than in bubble.ll. Also, it is noticed that they do not call any functions, except memcpy and printf.
+If we inspect carefully about the logics, we can see the optimizer integrates the called functions' codes into the calling functions. This is the reason why they contain more instructions than non-optimzed ones.
