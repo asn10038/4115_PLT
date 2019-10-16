@@ -49,10 +49,10 @@ public:
             errs() << " args=" << argNum;
         else
             errs() << " args=*";
-        errs() << " callsites=" << callCounter;
-        errs() << " basicblocks=" << bbCounter;
-        errs() << " instructions=" << instCounter;
-        errs() << " \n";
+        errs() << " callsites=" << callCounter
+         << " basicblocks=" << bbCounter
+         << " instructions=" << instCounter
+         << " \n";
     }
 };
 
@@ -67,31 +67,25 @@ namespace {
   // HW3 pass that records all the info 
   struct HW3 : public FunctionPass {
     static char ID; // Pass identification, replacement for typeid
-    unsigned int insts, bbs, argnum;
+    
 
     HW3() : FunctionPass(ID) {}
 
     bool runOnFunction(Function &F) override {
-      for (BasicBlock &BB : F) {
-        bbs++;
-        insts += BB.size();
-      }
-
-      for (auto it = F.arg_begin(); it != F.arg_end(); it++) {
-        argnum++; 
-      }
+      errs() << "Function Name: " <<  F.getName() << "\n";
 
       //Visit and check call sites
       CallSiteVisitor CSV;
       CSV.visit(F);
 
       FuncInfo fi;
-      fi.instCounter = insts;
-      fi.bbCounter = bbs;
-      fi.callCounter = 0; //NOT IMPLEMENTED
+      fi.instCounter = F.getInstructionCount();
+      fi.bbCounter = F.getBasicBlockList().size();
       fi.name = F.getName();
-      fi.argNum = (F.isVarArg()) ? 9999 : argnum;
-      infoMap.insert(std::pair<std::string, FuncInfo>(fi.name, fi));
+
+      fi.argNum = (F.isVarArg()) ? 9999 : F.arg_size();
+      //infoMap.insert(std::pair<std::string, FuncInfo>(fi.name, fi));
+      infoMap[fi.name] = fi;
       //fi.dump();
       return false;
     }
