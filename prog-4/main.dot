@@ -1,0 +1,4 @@
+digraph "CFG for 'main' function" {
+label="CFG for 'main' function";
+	Node0 [shape=record, label="{entry}"];
+}
