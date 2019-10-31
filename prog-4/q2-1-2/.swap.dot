@@ -1,0 +1,5 @@
+digraph "CFG for 'swap' function" {
+	label="CFG for 'swap' function";
+
+	Node0x55c0bf4615e0 [shape=record,label="{entry}"];
+}

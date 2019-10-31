@@ -1,0 +1,28 @@
+digraph "CFG for 'bubbleSort' function" {
+	label="CFG for 'bubbleSort' function";
+
+	Node0x5600059f5f70 [shape=record,label="{entry:\l  %arr.addr = alloca i32*, align 8\l  %n.addr = alloca i32, align 4\l  %i = alloca i32, align 4\l  %j = alloca i32, align 4\l  store i32* %arr, i32** %arr.addr, align 8\l  store i32 %n, i32* %n.addr, align 4\l  store i32 0, i32* %i, align 4\l  br label %for.cond\l}"];
+	Node0x5600059f5f70 -> Node0x5600059f6220;
+	Node0x5600059f6220 [shape=record,label="{for.cond:                                         \l  %0 = load i32, i32* %i, align 4\l  %1 = load i32, i32* %n.addr, align 4\l  %sub = sub nsw i32 %1, 1\l  %cmp = icmp slt i32 %0, %sub\l  br i1 %cmp, label %for.body, label %for.end16\l|{<s0>T|<s1>F}}"];
+	Node0x5600059f6220:s0 -> Node0x5600059f6270;
+	Node0x5600059f6220:s1 -> Node0x5600059f64f0;
+	Node0x5600059f6270 [shape=record,label="{for.body:                                         \l  store i32 0, i32* %j, align 4\l  br label %for.cond1\l}"];
+	Node0x5600059f6270 -> Node0x5600059f62c0;
+	Node0x5600059f62c0 [shape=record,label="{for.cond1:                                        \l  %2 = load i32, i32* %j, align 4\l  %3 = load i32, i32* %n.addr, align 4\l  %4 = load i32, i32* %i, align 4\l  %sub2 = sub nsw i32 %3, %4\l  %sub3 = sub nsw i32 %sub2, 1\l  %cmp4 = icmp slt i32 %2, %sub3\l  br i1 %cmp4, label %for.body5, label %for.end\l|{<s0>T|<s1>F}}"];
+	Node0x5600059f62c0:s0 -> Node0x5600059f6310;
+	Node0x5600059f62c0:s1 -> Node0x5600059f6450;
+	Node0x5600059f6310 [shape=record,label="{for.body5:                                        \l  %5 = load i32*, i32** %arr.addr, align 8\l  %6 = load i32, i32* %j, align 4\l  %idxprom = sext i32 %6 to i64\l  %arrayidx = getelementptr inbounds i32, i32* %5, i64 %idxprom\l  %7 = load i32, i32* %arrayidx, align 4\l  %8 = load i32*, i32** %arr.addr, align 8\l  %9 = load i32, i32* %j, align 4\l  %add = add nsw i32 %9, 1\l  %idxprom6 = sext i32 %add to i64\l  %arrayidx7 = getelementptr inbounds i32, i32* %8, i64 %idxprom6\l  %10 = load i32, i32* %arrayidx7, align 4\l  %cmp8 = icmp sgt i32 %7, %10\l  br i1 %cmp8, label %if.then, label %if.end\l|{<s0>T|<s1>F}}"];
+	Node0x5600059f6310:s0 -> Node0x5600059f6360;
+	Node0x5600059f6310:s1 -> Node0x5600059f63b0;
+	Node0x5600059f6360 [shape=record,label="{if.then:                                          \l  %11 = load i32*, i32** %arr.addr, align 8\l  %12 = load i32, i32* %j, align 4\l  %idxprom9 = sext i32 %12 to i64\l  %arrayidx10 = getelementptr inbounds i32, i32* %11, i64 %idxprom9\l  %13 = load i32*, i32** %arr.addr, align 8\l  %14 = load i32, i32* %j, align 4\l  %add11 = add nsw i32 %14, 1\l  %idxprom12 = sext i32 %add11 to i64\l  %arrayidx13 = getelementptr inbounds i32, i32* %13, i64 %idxprom12\l  call void @swap(i32* %arrayidx10, i32* %arrayidx13)\l  br label %if.end\l}"];
+	Node0x5600059f6360 -> Node0x5600059f63b0;
+	Node0x5600059f63b0 [shape=record,label="{if.end:                                           \l  br label %for.inc\l}"];
+	Node0x5600059f63b0 -> Node0x5600059f6400;
+	Node0x5600059f6400 [shape=record,label="{for.inc:                                          \l  %15 = load i32, i32* %j, align 4\l  %inc = add nsw i32 %15, 1\l  store i32 %inc, i32* %j, align 4\l  br label %for.cond1\l}"];
+	Node0x5600059f6400 -> Node0x5600059f62c0;
+	Node0x5600059f6450 [shape=record,label="{for.end:                                          \l  br label %for.inc14\l}"];
+	Node0x5600059f6450 -> Node0x5600059f64a0;
+	Node0x5600059f64a0 [shape=record,label="{for.inc14:                                        \l  %16 = load i32, i32* %i, align 4\l  %inc15 = add nsw i32 %16, 1\l  store i32 %inc15, i32* %i, align 4\l  br label %for.cond\l}"];
+	Node0x5600059f64a0 -> Node0x5600059f6220;
+	Node0x5600059f64f0 [shape=record,label="{for.end16:                                        \l  ret void\l}"];
+}

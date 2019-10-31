@@ -1,0 +1,14 @@
+digraph "CFG for 'printArray' function" {
+	label="CFG for 'printArray' function";
+
+	Node0x5600059f6540 [shape=record,label="{entry:\l  %arr.addr = alloca i32*, align 8\l  %size.addr = alloca i32, align 4\l  %i = alloca i32, align 4\l  store i32* %arr, i32** %arr.addr, align 8\l  store i32 %size, i32* %size.addr, align 4\l  store i32 0, i32* %i, align 4\l  br label %for.cond\l}"];
+	Node0x5600059f6540 -> Node0x5600059f9570;
+	Node0x5600059f9570 [shape=record,label="{for.cond:                                         \l  %0 = load i32, i32* %i, align 4\l  %1 = load i32, i32* %size.addr, align 4\l  %cmp = icmp slt i32 %0, %1\l  br i1 %cmp, label %for.body, label %for.end\l|{<s0>T|<s1>F}}"];
+	Node0x5600059f9570:s0 -> Node0x5600059f95c0;
+	Node0x5600059f9570:s1 -> Node0x5600059f9660;
+	Node0x5600059f95c0 [shape=record,label="{for.body:                                         \l  %2 = load i32*, i32** %arr.addr, align 8\l  %3 = load i32, i32* %i, align 4\l  %idxprom = sext i32 %3 to i64\l  %arrayidx = getelementptr inbounds i32, i32* %2, i64 %idxprom\l  %4 = load i32, i32* %arrayidx, align 4\l  %call = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4\l... x i8]* @.str, i64 0, i64 0), i32 %4)\l  br label %for.inc\l}"];
+	Node0x5600059f95c0 -> Node0x5600059f9610;
+	Node0x5600059f9610 [shape=record,label="{for.inc:                                          \l  %5 = load i32, i32* %i, align 4\l  %inc = add nsw i32 %5, 1\l  store i32 %inc, i32* %i, align 4\l  br label %for.cond\l}"];
+	Node0x5600059f9610 -> Node0x5600059f9570;
+	Node0x5600059f9660 [shape=record,label="{for.end:                                          \l  %call1 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([2 x i8],\l... [2 x i8]* @.str.1, i64 0, i64 0))\l  ret void\l}"];
+}
