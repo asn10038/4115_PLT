@@ -1,0 +1,24 @@
+digraph "Call graph" {
+	label="Call graph";
+
+	Node0x560be897ed90 [shape=record,label="{external node}"];
+	Node0x560be897ed90 -> Node0x560be897ee30;
+	Node0x560be897ed90 -> Node0x560be897eed0;
+	Node0x560be897ed90 -> Node0x560be897ef40;
+	Node0x560be897ed90 -> Node0x560be897ef70;
+	Node0x560be897ed90 -> Node0x560be898f550;
+	Node0x560be897ed90 -> Node0x560be898f580;
+	Node0x560be897ee30 [shape=record,label="{swap}"];
+	Node0x560be897eed0 [shape=record,label="{bubbleSort}"];
+	Node0x560be897eed0 -> Node0x560be897ee30;
+	Node0x560be897ef40 [shape=record,label="{printArray}"];
+	Node0x560be897ef40 -> Node0x560be897ef70;
+	Node0x560be897ef40 -> Node0x560be897ef70;
+	Node0x560be897ef70 [shape=record,label="{printf}"];
+	Node0x560be897ef70 -> Node0x560be897edc0;
+	Node0x560be898f550 [shape=record,label="{main}"];
+	Node0x560be898f550 -> Node0x560be897eed0;
+	Node0x560be898f550 -> Node0x560be897ef70;
+	Node0x560be898f550 -> Node0x560be897ef40;
+	Node0x560be898f580 [shape=record,label="{llvm.memcpy.p0i8.p0i8.i64}"];
+}

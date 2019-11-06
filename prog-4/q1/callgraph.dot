@@ -1,0 +1,16 @@
+digraph "CallGraph for 'file' " {
+label="CG for 'file' ";
+	Node2 [shape=record, label="{bubbleSort}"];
+	 Node2 -> Node1;
+	Node6 [shape=record, label="{llvm.memcpy.p0i8.p0i8.i64}"];
+	Node5 [shape=record, label="{main}"];
+	 Node5 -> Node6;
+	 Node5 -> Node2;
+	 Node5 -> Node4;
+	 Node5 -> Node3;
+	Node3 [shape=record, label="{printArray}"];
+	 Node3 -> Node4;
+	 Node3 -> Node4;
+	Node4 [shape=record, label="{printf}"];
+	Node1 [shape=record, label="{swap}"];
+}
