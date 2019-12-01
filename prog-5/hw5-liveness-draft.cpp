@@ -32,6 +32,7 @@ namespace {
     std::string variable_to_string(Value * v);
     std::string getDefined(Instruction &I);
     std::set<std::string>* getUsed(Instruction &I);
+    std::set<std::string>* getUsed(PHINode &I, BasicBlock* BB);
     void insertPrevInsts(InstLinkMap& map, Function &F);
     InstVector* getExits(InstLinkMap& map);
 
@@ -47,9 +48,9 @@ namespace {
         bool branchNode = false;
         bool phiNode = false;
 
-        bool isExitNode() { return exitNode; }
-        bool isBranchNode() { return branchNode; }
-        bool isPhiNode() { return phiNode; }
+        bool isExitNode() const { return exitNode; }
+        bool isBranchNode() const { return branchNode; }
+        bool isPhiNode() const { return phiNode; }
 
         Node(Instruction *I) : inst(I) {
            idNum = globalIdNum;
@@ -86,6 +87,8 @@ namespace {
         void insertLiveIn(std::string str) const { liveIn.insert(str); }
         void insertLiveOut(std::string str) const { liveOut.insert(str); }
 
+        void removeLiveOut(std::string str) const { liveOut.erase(str); }
+
         void insertLiveOut(std::set<std::string> strSet) const { liveOut.insert(strSet.begin(), strSet.end()); }
     };
     
@@ -103,6 +106,7 @@ namespace {
                if (n.def != "") errs() << "\t \t Defines: " << n.def << "\n";
             }
         }
+
         void dumpLiveOut() {
             //re order the nodes based on ID in the map
             std::map<int, std::string> outputMap;
@@ -110,7 +114,7 @@ namespace {
                 int mapKey = n.getIdNum();
                 std::stringstream ss;
                 std::string instString;
-                llvm:raw_string_ostream rso(instString);
+                raw_string_ostream rso(instString);
                 n.getInst()->print(rso);
 
                 ss << "Instruction: \t";
@@ -163,7 +167,27 @@ namespace {
                             errs() << "ABORT: [doLivenessAnalysis] Processing poorly constructed graph";
                             exit(1);
                         }
-                        n.insertLiveOut(child->getLiveIn());
+
+                        if(!child->isPhiNode()) n.insertLiveOut(child->getLiveIn());
+                        else {
+                            // insert the live in variables from the phi node
+                            n.insertLiveOut(child->getLiveIn());
+                            //insert the live variable from this edge to the PHI node
+                            BasicBlock *BB = n.getInst()->getParent();
+                            std::stringstream ss;
+                            ss << "%" << BB->getName().str();
+                            
+                            PHINode *pI = dyn_cast<PHINode>(i);
+                            for (unsigned int i = 0; i < pI->getNumIncomingValues(); i++) {
+                                std::string block = variable_to_string(pI->getIncomingBlock(i));
+                                auto val = variable_to_string(pI->getIncomingValue(i));
+                                if(block == ss.str()) {
+                                    n.insertLiveOut(val);
+                                } else {
+                                    n.removeLiveOut(val);    
+                                }
+                            }
+                        }
                     }
 
                     //  check for ending
@@ -189,23 +213,24 @@ namespace {
 
             // handle the children
             // special case designations
-            if (PHINode* pI = dyn_cast<PHINode>(&I)) {
-                errs() << "UNHANDLED PHI NODE IN GRAPH\n";
+            PHINode *pI = dyn_cast<PHINode>(&I);
+            BranchInst *bI = dyn_cast<BranchInst>(&I);
+            bool isTerminator = I.isTerminator();
+            if (pI) {
                 n.phiNode = true;
-            } else if(BranchInst* bI = dyn_cast<BranchInst>(&I)) {
-                errs() << "UNHANDLED BRANCH INST IN GRAPH\n";
-                n.branchNode = true;
-            } else if (I.isTerminator()) {
-                n.exitNode = true;
+                n.addChild(I.getNextNode());
+            } else if(bI || isTerminator) {
+                if(bI) n.branchNode = true;
+                if(isTerminator) n.exitNode = true;
                 for (unsigned int i = 0; i < I.getNumSuccessors(); i++) {
                     auto &instList = I.getSuccessor(i)->getInstList();
                     auto beginInst = instList.begin();
                     if (beginInst == instList.end()) {
                         continue;
                     }
-                    errs() << "Adding child to terminator node";
                     n.addChild(&*beginInst);
                 }
+                n.branchNode = true;
 
                 #if 0
                 auto &instList = I.getSuccessor(i)->getInstList();
@@ -296,6 +321,12 @@ namespace {
                 usedSet->insert(variable_to_string(val));
             }
         }
+        return usedSet;
+    }
+    std::set<std::string>* getUsed(PHINode &pI, BasicBlock *BB) {
+        std::set<std::string>* usedSet = new std::set<std::string>();
+        Value* val = pI.getIncomingValueForBlock(BB);
+        usedSet->insert(variable_to_string(val));
         return usedSet;
     }
 
