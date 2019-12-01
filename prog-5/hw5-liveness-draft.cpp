@@ -53,9 +53,12 @@ namespace {
         Instruction* getInst() const { return inst; }
         
         
-        // maybe maintain a live in and live out set here
         std::set<std::string> use;
         std::string def;
+
+        // maybe maintain a live in and live out set here
+        mutable std::set<std::string> liveIn;
+        mutable std::set<std::string> liveOut;
 
         // define the < operator so they can go in a set
         // using the pointer addr for now
@@ -63,6 +66,19 @@ namespace {
 
         //interface for pointer issue
         void setUsed(std::set<std::string>* usedSetPtr) { use = *usedSetPtr; }
+
+        void clearLiveIn() { liveIn.clear(); }
+        void clearLiveOut() { liveOut.clear(); }
+
+        std::set<std::string> getLiveIn() const { return liveIn; }
+        std::set<std::string> getLiveOut() const { return liveOut; }
+        std::set<std::string> getUsed() const { return use; }
+        std::string getDefd() const { return def; }
+
+        void insertLiveIn(std::string str) const { liveIn.insert(str); }
+        void insertLiveOut(std::string str) const { liveOut.insert(str); }
+
+        void insertLiveOut(std::set<std::string> strSet) const { liveOut.insert(strSet.begin(), strSet.end()); }
     };
     
     class Graph {
@@ -77,6 +93,60 @@ namespace {
                    errs() <<"\t Uses: " << str << "\n" ;
                }
                if (n.def != "") errs() << "\t \t Defines: " << n.def << "\n";
+            }
+        }
+        void dumpLiveOut() {
+            for(auto n : g) {
+                errs() << "Instruction: \t";
+                n.getInst()->print(errs());
+                errs() << "-->\n";
+                errs() << "  liveness OUT: {";
+                for(auto v : n.liveOut) {
+                    errs() << v << " ";
+                }
+                errs() << "}\n";
+            }
+        }
+
+        void clearLiveness() {
+            for(auto n : g) {
+                n.clearLiveIn();
+                n.clearLiveOut();
+            }
+        }
+
+        void doLivenessAnalysis() {
+            //initialization
+            clearLiveness();
+            bool finished = false;
+            while(!finished) {
+                finished = true;
+                for(auto &n : g) {
+                    std::set<std::string> tmpLiveIn = n.getLiveIn();
+                    std::set<std::string> tmpLiveOut = n.getLiveOut();
+
+                    //add the items from use
+                    for(auto str : n.getUsed()) n.insertLiveIn(str);
+
+                    //add the items from liveout that aren't defined
+                    for(auto str : n.getLiveOut()) {
+                        if(str != n.getDefd()) n.insertLiveIn(str);
+                    }
+
+                    //update live out
+                    for(auto i : n.children) {
+                        auto child = g.find(i);
+                        if(child == g.end()) {
+                            errs() << "ABORT: [doLivenessAnalysis] Processing poorly constructed graph";
+                            exit(1);
+                        }
+                        n.insertLiveOut(child->getLiveIn());
+                    }
+
+                    //  check for ending
+                    if(finished && (tmpLiveIn != n.getLiveIn() || tmpLiveOut != n.getLiveOut())) { finished = false; }
+
+                }
             }
         }
     };
@@ -188,6 +258,9 @@ namespace {
             errs() << " ---------------------------------------- \n\n ";
             #endif
             flowGraph.dump();
+            flowGraph.doLivenessAnalysis();
+            errs() << " ---------------------------------------- \n\n ";
+            flowGraph.dumpLiveOut();
             return false;
         }
     };
