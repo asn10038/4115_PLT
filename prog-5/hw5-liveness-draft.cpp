@@ -17,6 +17,7 @@
 #include "llvm/IR/ValueMap.h"
 #include "llvm/IR/ValueSymbolTable.h"
 #include <iostream>
+#include <sstream>
 #include <set>
 #include <vector>
 
@@ -34,8 +35,11 @@ namespace {
     void insertPrevInsts(InstLinkMap& map, Function &F);
     InstVector* getExits(InstLinkMap& map);
 
+    unsigned int globalIdNum = 0;
+
     class Node {
     public:
+        unsigned int idNum;
         Instruction *inst;
         std::set<Instruction*> children;
 
@@ -47,10 +51,14 @@ namespace {
         bool isBranchNode() { return branchNode; }
         bool isPhiNode() { return phiNode; }
 
-        Node(Instruction *I) : inst(I) {}
+        Node(Instruction *I) : inst(I) {
+           idNum = globalIdNum;
+           globalIdNum++;
+        }
         std::set<Instruction*> getChildren() { return children; }
         void addChild(Instruction *I) { children.insert(I); }
         Instruction* getInst() const { return inst; }
+        unsigned int getIdNum() const { return idNum; }
         
         
         std::set<std::string> use;
@@ -96,16 +104,31 @@ namespace {
             }
         }
         void dumpLiveOut() {
+            //re order the nodes based on ID in the map
+            std::map<int, std::string> outputMap;
             for(auto n : g) {
-                errs() << "Instruction: \t";
-                n.getInst()->print(errs());
-                errs() << "-->\n";
-                errs() << "  liveness OUT: {";
+                int mapKey = n.getIdNum();
+                std::stringstream ss;
+                std::string instString;
+                llvm:raw_string_ostream rso(instString);
+                n.getInst()->print(rso);
+
+                ss << "Instruction: \t";
+                ss << instString;
+                ss << "-->\n";
+                ss << "  liveness OUT: {";
                 for(auto v : n.liveOut) {
-                    errs() << v << " ";
+                    ss << v << " ";
                 }
-                errs() << "}\n";
+                ss << "}\n";
+                outputMap[mapKey] = ss.str();
             }
+            //output the strings
+            for (auto it : outputMap) {
+                errs() << it.second;
+            }
+                
+
         }
 
         void clearLiveness() {
@@ -210,56 +233,11 @@ namespace {
             for (BasicBlock &BB : F) {
                 for (Instruction &I : BB) {
                     addToGraph(I);
-                    #if 0
-
-                    errs() << "instruction: ";
-                    I.print(errs());
-                    errs() << "\n";
-
-                    if (PHINode* pI = dyn_cast<PHINode>(&I)) {
-                        errs() << "is PhiNode" << "\n";
-                        for (unsigned int i = 0; i < pI->getNumIncomingValues(); i++) {
-                            errs() << "value: " << variable_to_string(pI->getIncomingValue(i)) << " ";
-                            errs() << "from Block: " << variable_to_string(pI->getIncomingBlock(i)) << "\n";
-                        }
-                    }
-
-                    std::string definedValue = getDefined(I);
-                    if (definedValue.length() > 0) {
-                        errs() << "<Defined>: " << definedValue << "\n";
-                    } else {
-                        errs() << "Nothing defined!" << "\n";
-                    }
-
-                    std::set<std::string>* usedSet = getUsed(I);
-                    for (std::set<std::string>::iterator it = usedSet->begin(); it != usedSet->end(); it++) {
-                        errs() << "<Used>: " << *it<< "\n";
-                    }
-                    #endif
                 }
             }
-            #if 0
-            errs() << "\n\n";
-            for (auto exitInst: *getExits(prevInstMap)) {
-                errs() << "Exit Instruction: ";
-                exitInst->print(errs());
-                errs() << "\n";
-            }
-            for (auto const& entry : prevInstMap) {
-                errs() << "instruction: ";
-                entry.first->print(errs());
-                errs() << "\n";
-                for (auto ptNextI : *entry.second) {
-                    errs() << "previous: ";
-                    ptNextI->print(errs());
-                    errs() << "\n";
-                }
-            }
-            errs() << " ---------------------------------------- \n\n ";
-            #endif
-            flowGraph.dump();
+            //flowGraph.dump();
             flowGraph.doLivenessAnalysis();
-            errs() << " ---------------------------------------- \n\n ";
+           // errs() << " ---------------------------------------- \n\n ";
             flowGraph.dumpLiveOut();
             return false;
         }
@@ -357,3 +335,31 @@ namespace {
 
 char Liveness::ID = 0;
 static RegisterPass<Liveness> X("liveness", "My Liveness Set Pass");
+
+                    #if 0
+
+                    errs() << "instruction: ";
+                    I.print(errs());
+                    errs() << "\n";
+
+                    if (PHINode* pI = dyn_cast<PHINode>(&I)) {
+                        errs() << "is PhiNode" << "\n";
+                        for (unsigned int i = 0; i < pI->getNumIncomingValues(); i++) {
+                            errs() << "value: " << variable_to_string(pI->getIncomingValue(i)) << " ";
+                            errs() << "from Block: " << variable_to_string(pI->getIncomingBlock(i)) << "\n";
+                        }
+                    }
+
+                    std::string definedValue = getDefined(I);
+                    if (definedValue.length() > 0) {
+                        errs() << "<Defined>: " << definedValue << "\n";
+                    } else {
+                        errs() << "Nothing defined!" << "\n";
+                    }
+
+                    std::set<std::string>* usedSet = getUsed(I);
+                    for (std::set<std::string>::iterator it = usedSet->begin(); it != usedSet->end(); it++) {
+                        errs() << "<Used>: " << *it<< "\n";
+                    }
+                    #endif
+
