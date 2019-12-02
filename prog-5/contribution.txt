@@ -1,0 +1,1 @@
+Mingen and Anthony worked on this project equally. Mingen wrote the utility code to get variables in use and find the next nodes. Anthony implemented the CFG building and liveness analysis
