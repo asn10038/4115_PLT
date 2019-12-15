@@ -1,1 +1,3 @@
-Anthony did the second problem. Mingen did the first problem.
+We wrote code equally. Anthony wrote the module pass for the function deleting, and Anthony finished
+writing the pass to remove dead variables and the liveness analysis. Mingen wrote the code for 
+the utility functions that were used in making the graph etc.
